@@ -1,6 +1,5 @@
 plugins {
     kotlin("jvm") version "1.8.20"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
     application
 }
 
@@ -21,5 +20,6 @@ kotlin {
 }
 
 application {
-    mainClass.set("net.cherrycave.minestom.lobby.MainKt")
+    mainClass.set("net.cherrycave.minestom.lobby.Main")
+    ext.set("Multi-Release", true)
 }
