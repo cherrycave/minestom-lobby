@@ -1,0 +1,9 @@
+{
+  "version": "${version}",
+  "lastTag": "${lastTag}",
+  "commitDistance": "${commitDistance}",
+  "gitHash": "${gitHash}",
+  "gitHashFull": "${gitHashFull}",
+  "branchName": "${branchName}",
+  "isCleanTag": "${isCleanTag}"
+}
