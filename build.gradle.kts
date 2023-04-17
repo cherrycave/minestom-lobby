@@ -19,7 +19,7 @@ dependencies {
     implementation("com.github.Minestom.Minestom:Minestom:8ad2c7701f")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
     implementation("com.akuleshov7:ktoml-core:0.4.1")
-    implementation("com.akuleshov7:ktoml-file:0.4.0")
+    implementation("com.akuleshov7:ktoml-file:0.4.1")
     implementation("net.kyori:adventure-text-minimessage:4.13.1")
 }
 
