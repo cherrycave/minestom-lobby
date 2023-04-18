@@ -13,6 +13,7 @@ import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.GameMode
 import net.minestom.server.event.player.PlayerLoginEvent
 import net.minestom.server.extras.MojangAuth
+import net.minestom.server.extras.velocity.VelocityProxy
 import net.minestom.server.utils.NamespaceID
 import net.minestom.server.world.DimensionType
 import java.io.File
@@ -51,7 +52,11 @@ object Main {
             event.player.respawnPoint = config.spawnLocation.toPos()
             event.player.gameMode = GameMode.ADVENTURE
         }
-        MojangAuth.init()
+        File("forwarding.secret").let { file ->
+            if (file.exists()) {
+                VelocityProxy.enable(file.readText())
+            } else MojangAuth.init()
+        }
         minecraftServer.start(config.serverData.hostname, config.serverData.port)
     }
 
