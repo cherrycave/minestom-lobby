@@ -54,8 +54,8 @@ object Main {
         }
         File("forwarding.secret").let { file ->
             if (file.exists()) {
-                VelocityProxy.enable(file.readText())
-            } else MojangAuth.init()
+                VelocityProxy.enable(file.readText()).run { MinecraftServer.LOGGER.info("Enable Velocity Mode") }
+            } else MojangAuth.init().run { MinecraftServer.LOGGER.info("Enabling Mojang Auth") }
         }
         minecraftServer.start(config.serverData.hostname, config.serverData.port)
     }
