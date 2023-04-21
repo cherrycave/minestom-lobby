@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm") version "1.8.20"
     kotlin("plugin.serialization") version "1.8.20"
     id("com.palantir.git-version") version "3.0.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     application
 }
 
@@ -35,10 +36,10 @@ application {
 val versionDetails: groovy.lang.Closure<com.palantir.gradle.gitversion.VersionDetails> by extra
 val details = versionDetails()
 tasks {
-    withType<JavaCompile>() {
+    withType<JavaCompile> {
         options.encoding = "UTF-8"
     }
-    withType<KotlinCompile>() {
+    withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "17"
     }
     processResources {
