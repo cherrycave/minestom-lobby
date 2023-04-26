@@ -6,6 +6,18 @@ import kotlinx.serialization.Serializable
 data class NpcConfigFile(val npcs: List<NpcConfigEntry>) {
 
     @Serializable
-    data class NpcConfigEntry(val id: String, val name: String, val texture: String, val signature: String, val position: ConfigFile.SerialPos)
+    data class NpcConfigEntry(
+        val id: String,
+        val name: String,
+        val texture: String,
+        val signature: String,
+        val metadata: List<NpcMetadata>,
+        val position: ConfigFile.SerialPos
+    )
+
+    @Serializable
+    enum class NpcMetadata {
+        LOOK_FOLLOW_PLAYER
+    }
 
 }

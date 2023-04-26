@@ -22,6 +22,17 @@ object NpcHandler {
                 player.skin = PlayerSkin(npc.texture, npc.signature)
                 player.setNoGravity(true)
                 npcs.add(player)
+                val meta = player.entityMeta
+                meta.setNotifyAboutChanges(false)
+                meta.isCapeEnabled = true
+                meta.isHatEnabled = true
+                meta.isJacketEnabled = true
+                meta.isLeftLegEnabled = true
+                meta.isLeftSleeveEnabled = true
+                meta.isRightLegEnabled = true
+                meta.isRightSleeveEnabled = true
+                meta.setNotifyAboutChanges(true)
+                // Add metadata implementation
             }
         }
     }
