@@ -4,8 +4,10 @@ import com.akuleshov7.ktoml.Toml
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import net.cherrycave.minestom.lobby.commands.NpcCommand
 import net.cherrycave.minestom.lobby.data.ConfigFile
 import net.cherrycave.minestom.lobby.data.Constants
+import net.cherrycave.minestom.lobby.data.NpcConfigFile
 import net.cherrycave.minestom.lobby.data.toSerialPos
 import net.kyori.adventure.key.Key
 import net.minestom.server.MinecraftServer
@@ -21,16 +23,25 @@ import java.io.InputStreamReader
 import kotlin.system.exitProcess
 
 object Main {
-    private val toml = Toml
+    val toml = Toml
+    val json = Json {
+        prettyPrint = true
+        isLenient = true
+    }
+    val npcConfigFile = File("data/npcs.json")
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val configFile = File("config.toml")
+        val configFile = File("data/config.toml")
         if (!configFile.exists() || args.firstOrNull() == "--generateConfig") {
             println("Generating config...")
+            if (!configFile.parentFile.exists()) configFile.parentFile.mkdir()
             if (configFile.exists()) configFile.delete()
             configFile.createNewFile()
             configFile.writeText(toml.encodeToString(ConfigFile(Pos.ZERO.toSerialPos(), ConfigFile.ServerData())))
+            if (!npcConfigFile.exists()) npcConfigFile.delete()
+            npcConfigFile.createNewFile()
+            npcConfigFile.writeText(json.encodeToString(NpcConfigFile(emptyList())))
             exitProcess(0)
         }
         val config = toml.decodeFromString<ConfigFile>(configFile.readText())
@@ -51,12 +62,20 @@ object Main {
             event.setSpawningInstance(instanceContainer)
             event.player.respawnPoint = config.spawnLocation.toPos()
             event.player.gameMode = GameMode.ADVENTURE
+            event.player.isFlying = true
         }
         File("forwarding.secret").let { file ->
             if (file.exists()) {
                 VelocityProxy.enable(file.readText()).run { MinecraftServer.LOGGER.info("Enable Velocity Mode") }
             } else MojangAuth.init().run { MinecraftServer.LOGGER.info("Enabling Mojang Auth") }
         }
+
+        // Init Commands
+        MinecraftServer.getCommandManager().register(NpcCommand())
+
+        // Add all NPCs
+        NpcHandler.reloadNpcs()
+
         minecraftServer.start(config.serverData.hostname, config.serverData.port)
     }
 
