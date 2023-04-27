@@ -4,12 +4,13 @@ import net.cherrycave.minestom.lobby.NpcHandler
 import net.cherrycave.minestom.lobby.data.NpcConfigFile
 import net.cherrycave.minestom.lobby.data.toSerialPos
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.arguments.ArgumentType
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.PlayerSkin
-import java.util.UUID
+import java.util.*
 
 class NpcCommand : Command("npc") {
 
@@ -24,44 +25,70 @@ class NpcCommand : Command("npc") {
     class NpcAddCommand : Command("add") {
         init {
             val position = ArgumentType.RelativeBlockPosition("position")
-            position.setCallback { sender, _ -> sender.sendMessage(Component.text("Position is invalid!")) }
+            position.setCallback { sender, _ ->
+                sender.sendMessage(
+                    Component.text("Position is invalid!").color(NamedTextColor.RED)
+                )
+            }
             val name = ArgumentType.String("name")
-            name.setCallback { sender, _ -> sender.sendMessage(Component.text("Name is invalid!")) }
+            name.setCallback { sender, _ ->
+                sender.sendMessage(
+                    Component.text("Name is invalid!").color(NamedTextColor.RED)
+                )
+            }
             addSyntax({ sender, context ->
-                    val skin = PlayerSkin.fromUsername(context.get("name"))
-                    NpcHandler.addNpc(NpcConfigFile.NpcConfigEntry(
+                val skin = PlayerSkin.fromUsername(context.get(name))
+                NpcHandler.addNpc(
+                    NpcConfigFile.NpcConfigEntry(
                         UUID.randomUUID().toString(),
                         context.get(name),
                         skin?.textures().orEmpty(),
                         skin?.signature().orEmpty(),
                         emptyList(),
-                        context.get(position).from(sender as Player).asPosition().toSerialPos()
-                    ))
-                }, position, name)
+                        context.get(position).fromSender(sender).asPosition().toSerialPos()
+                    )
+                )
+            }, position, name)
+        }
+    }
+
+    class NpcRemoveCommand : Command("remove") {
+        init {
+            val id = ArgumentType.UUID("uuid")
+            addSyntax({ sender, context ->
+                if (NpcHandler.npcs.any { it.uuid == context.get(id) }) {
+                    sender.sendMessage(Component.text("Removed NPC!").color(NamedTextColor.GREEN))
+                    NpcHandler.removeNpc(context.get(id).toString())
+                } else sender.sendMessage(Component.text("Unknown NPC!").color(NamedTextColor.RED))
+            }, id)
         }
     }
 
     class NpcListCommand : Command("list") {
         init {
             setDefaultExecutor { sender, _ ->
-                val component = Component.text("NPC list: \n").color(NamedTextColor.GREEN)
-                for (npc in NpcHandler.npcs) {
-                    component.append(Component.text(" ${npc.name} (").append(Component.text(npc.uuid.toString()).color(NamedTextColor.GRAY)).append(Component.text(")\n")))
+                var component = Component.text("NPC list:").color(NamedTextColor.GREEN)
+                NpcHandler.npcs.forEach { npc ->
+                    component = component.append {
+                        Component.text("\n ").append {
+                            npc.name.append(Component.text(" (")).append {
+                                Component.text(npc.uuid.toString()).color(NamedTextColor.GRAY).clickEvent(
+                                    ClickEvent.copyToClipboard(
+                                        npc.uuid.toString()
+                                    )
+                                )
+                            }.append(Component.text(")"))
+                        }
+                    }
                 }
                 sender.sendMessage(component)
             }
         }
     }
 
-    class NpcRemoveCommand : Command("remove") {
-        init {
-
-        }
-    }
-
     class NpcReloadCommand : Command("reload") {
         init {
-            setDefaultExecutor { sender, context ->
+            setDefaultExecutor { sender, _ ->
                 sender.sendMessage(Component.text("Reloading NPCs!"))
                 NpcHandler.reloadNpcs()
             }

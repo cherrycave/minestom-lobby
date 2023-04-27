@@ -3,8 +3,10 @@ package net.cherrycave.minestom.lobby
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import net.cherrycave.minestom.lobby.data.NpcConfigFile
+import net.minestom.server.MinecraftServer
 import net.minestom.server.entity.PlayerSkin
 import net.minestom.server.entity.fakeplayer.FakePlayer
+import net.minestom.server.timer.TaskSchedule
 import java.util.*
 
 object NpcHandler {
@@ -14,6 +16,7 @@ object NpcHandler {
         npcs.forEach {
             it.remove()
         }
+        npcs.clear()
         val npcConfig = Main.json.decodeFromString<NpcConfigFile>(Main.npcConfigFile.readText())
         npcConfig.npcs.forEach { npc ->
             FakePlayer.initPlayer(UUID.fromString(npc.id), npc.name) { player ->
@@ -32,7 +35,11 @@ object NpcHandler {
                 meta.isRightLegEnabled = true
                 meta.isRightSleeveEnabled = true
                 meta.setNotifyAboutChanges(true)
-                // Add metadata implementation
+                MinecraftServer.getSchedulerManager().buildTask {
+                    player.teleport(npc.position.toPos())
+                }.delay(TaskSchedule.nextTick()).schedule()
+                // TODO: Add metadata implementation
+                // TODO: Add custom name
             }
         }
     }
@@ -41,6 +48,17 @@ object NpcHandler {
         Main.npcConfigFile.writeText(
             Main.json.encodeToString(
                 NpcConfigFile(Main.json.decodeFromString<NpcConfigFile>(Main.npcConfigFile.readText()).npcs.plus(npc))
+            )
+        )
+        reloadNpcs()
+    }
+
+    fun removeNpc(id: String) {
+        Main.npcConfigFile.writeText(
+            Main.json.encodeToString(
+                NpcConfigFile(Main.json.decodeFromString<NpcConfigFile>(Main.npcConfigFile.readText()).npcs.filter {
+                    it.id != id
+                })
             )
         )
         reloadNpcs()

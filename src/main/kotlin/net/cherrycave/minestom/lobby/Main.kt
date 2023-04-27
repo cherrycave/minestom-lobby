@@ -9,13 +9,18 @@ import net.cherrycave.minestom.lobby.data.ConfigFile
 import net.cherrycave.minestom.lobby.data.Constants
 import net.cherrycave.minestom.lobby.data.NpcConfigFile
 import net.cherrycave.minestom.lobby.data.toSerialPos
+import net.cherrycave.minestom.lobby.handlers.BannerHandler
+import net.cherrycave.minestom.lobby.handlers.SignHandler
+import net.cherrycave.minestom.lobby.handlers.SkullHandler
 import net.kyori.adventure.key.Key
 import net.minestom.server.MinecraftServer
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.GameMode
+import net.minestom.server.event.player.PlayerBlockInteractEvent
 import net.minestom.server.event.player.PlayerLoginEvent
 import net.minestom.server.extras.MojangAuth
 import net.minestom.server.extras.velocity.VelocityProxy
+import net.minestom.server.instance.block.Block
 import net.minestom.server.utils.NamespaceID
 import net.minestom.server.world.DimensionType
 import java.io.File
@@ -48,7 +53,7 @@ object Main {
 
         val constants = Json.decodeFromString<Constants>(InputStreamReader(this.javaClass.classLoader.getResourceAsStream("constants.json")!!).readText())
         val minecraftServer = MinecraftServer.init()
-        MinecraftServer.setBrandName("Hades v${constants.version} (${constants.gitHash})")
+        MinecraftServer.setBrandName("Hades v${constants.version} (git-${constants.gitHash})")
         val instanceManager = MinecraftServer.getInstanceManager()
         val dimension = DimensionType
             .builder(NamespaceID.from(Key.key("cherrycave", "fullbright")))
@@ -62,13 +67,27 @@ object Main {
             event.setSpawningInstance(instanceContainer)
             event.player.respawnPoint = config.spawnLocation.toPos()
             event.player.gameMode = GameMode.ADVENTURE
-            event.player.isFlying = true
+        }.addListener(PlayerBlockInteractEvent::class.java) { event ->
+            event.isCancelled = true
+            event.isBlockingItemUse = true
         }
         File("forwarding.secret").let { file ->
             if (file.exists()) {
                 VelocityProxy.enable(file.readText()).run { MinecraftServer.LOGGER.info("Enable Velocity Mode") }
             } else MojangAuth.init().run { MinecraftServer.LOGGER.info("Enabling Mojang Auth") }
         }
+
+        // Register Handlers
+        Block.values().filter { it.name().endsWith("sign") }.forEach {
+            MinecraftServer.getBlockManager().registerHandler(it.name()) {
+                SignHandler
+            }
+        }
+
+        MinecraftServer.getBlockManager().registerHandler("minecraft:sign") { SignHandler }
+        MinecraftServer.getBlockManager().registerHandler("minecraft:player_head") { SkullHandler }
+        MinecraftServer.getBlockManager().registerHandler("minecraft:skull") { SkullHandler }
+        MinecraftServer.getBlockManager().registerHandler("minecraft:banner") { BannerHandler }
 
         // Init Commands
         MinecraftServer.getCommandManager().register(NpcCommand())
