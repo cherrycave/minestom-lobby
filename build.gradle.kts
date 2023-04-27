@@ -16,16 +16,12 @@ repositories {
     maven("https://jitpack.io")
 }
 
-val ktorVersion = "2.3.0"
-
 dependencies {
     implementation("com.github.Minestom.Minestom:Minestom:-SNAPSHOT")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
     implementation("com.akuleshov7:ktoml-core:0.4.1")
     implementation("com.akuleshov7:ktoml-file:0.4.1")
     implementation("net.kyori:adventure-text-minimessage:4.13.1")
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-cio:$ktorVersion")
 }
 
 kotlin {
