@@ -6,6 +6,8 @@ import net.cherrycave.minestom.lobby.data.toSerialPos
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.minimessage.MiniMessage
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.arguments.ArgumentType
 import net.minestom.server.entity.Player
@@ -20,6 +22,7 @@ class NpcCommand : Command("npc") {
         addSubcommand(NpcListCommand())
         addSubcommand(NpcRemoveCommand())
         addSubcommand(NpcReloadCommand())
+        addSubcommand(NpcMoveCommand())
     }
 
     class NpcAddCommand : Command("add") {
@@ -30,14 +33,14 @@ class NpcCommand : Command("npc") {
                     Component.text("Position is invalid!").color(NamedTextColor.RED)
                 )
             }
-            val name = ArgumentType.String("name")
+            val name = ArgumentType.String("minimessage_display_name")
             name.setCallback { sender, _ ->
                 sender.sendMessage(
                     Component.text("Name is invalid!").color(NamedTextColor.RED)
                 )
             }
             addSyntax({ sender, context ->
-                val skin = PlayerSkin.fromUsername(context.get(name))
+                val skin = PlayerSkin.fromUsername(PlainTextComponentSerializer.plainText().serialize(MiniMessage.miniMessage().deserialize(context.get(name))))
                 NpcHandler.addNpc(
                     NpcConfigFile.NpcConfigEntry(
                         UUID.randomUUID().toString(),
@@ -56,7 +59,7 @@ class NpcCommand : Command("npc") {
         init {
             val id = ArgumentType.UUID("uuid")
             addSyntax({ sender, context ->
-                if (NpcHandler.npcs.any { it.uuid == context.get(id) }) {
+                if (NpcHandler.npcs.any { it.key.uuid == context.get(id) }) {
                     sender.sendMessage(Component.text("Removed NPC!").color(NamedTextColor.GREEN))
                     NpcHandler.removeNpc(context.get(id).toString())
                 } else sender.sendMessage(Component.text("Unknown NPC!").color(NamedTextColor.RED))
@@ -71,10 +74,10 @@ class NpcCommand : Command("npc") {
                 NpcHandler.npcs.forEach { npc ->
                     component = component.append {
                         Component.text("\n ").append {
-                            npc.name.append(Component.text(" (")).append {
-                                Component.text(npc.uuid.toString()).color(NamedTextColor.GRAY).clickEvent(
+                            npc.value.customName!!.append(Component.text(" (")).append {
+                                Component.text(npc.key.uuid.toString()).color(NamedTextColor.GRAY).clickEvent(
                                     ClickEvent.copyToClipboard(
-                                        npc.uuid.toString()
+                                        npc.key.uuid.toString()
                                     )
                                 )
                             }.append(Component.text(")"))
@@ -92,6 +95,20 @@ class NpcCommand : Command("npc") {
                 sender.sendMessage(Component.text("Reloading NPCs!"))
                 NpcHandler.reloadNpcs()
             }
+        }
+    }
+
+    class NpcMoveCommand : Command("move") {
+        init {
+            val id = ArgumentType.UUID("uuid")
+            val location = ArgumentType.RelativeBlockPosition("location")
+            addSyntax({ sender, context ->
+                if (NpcHandler.npcs.any { it.key.uuid == context.get(id) }) {
+                    val position = context.get(location).fromSender(sender).asPosition()
+                    sender.sendMessage(Component.text("Moved NPC!").color(NamedTextColor.GREEN))
+                    NpcHandler.moveNpc(context.get(id).toString(), position.toSerialPos())
+                } else sender.sendMessage(Component.text("Unknown NPC!").color(NamedTextColor.RED))
+            }, id, location)
         }
     }
 
