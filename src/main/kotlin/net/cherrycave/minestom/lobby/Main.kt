@@ -23,8 +23,8 @@ import net.minestom.server.extras.velocity.VelocityProxy
 import net.minestom.server.instance.block.Block
 import net.minestom.server.utils.NamespaceID
 import net.minestom.server.world.DimensionType
-import java.io.File
 import java.io.InputStreamReader
+import kotlin.io.path.*
 import kotlin.system.exitProcess
 
 object Main {
@@ -33,19 +33,18 @@ object Main {
         prettyPrint = true
         isLenient = true
     }
-    val npcConfigFile = File("data/npcs.json")
+
+    val dataPath = Path("./data")
+
+    val npcConfigFile = dataPath.resolve("npcs.json")
+    val configFile = dataPath.resolve("config.toml")
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val configFile = File("data/config.toml")
+        dataPath.createDirectories()
         if (!configFile.exists() || args.firstOrNull() == "--generateConfig") {
             println("Generating config...")
-            if (!configFile.parentFile.exists()) configFile.parentFile.mkdir()
-            if (configFile.exists()) configFile.delete()
-            configFile.createNewFile()
             configFile.writeText(toml.encodeToString(ConfigFile(Pos.ZERO.toSerialPos(), ConfigFile.ServerData())))
-            if (!npcConfigFile.exists()) npcConfigFile.delete()
-            npcConfigFile.createNewFile()
             npcConfigFile.writeText(json.encodeToString(NpcConfigFile(emptyList())))
             exitProcess(0)
         }
@@ -71,9 +70,9 @@ object Main {
             event.isCancelled = true
             event.isBlockingItemUse = true
         }
-        File("forwarding.secret").let { file ->
-            if (file.exists()) {
-                VelocityProxy.enable(file.readText()).run { MinecraftServer.LOGGER.info("Enable Velocity Mode") }
+        Path("forwarding.secret").let { path ->
+            if (path.exists()) {
+                VelocityProxy.enable(path.readText()).run { MinecraftServer.LOGGER.info("Enable Velocity Mode") }
             } else MojangAuth.init().run { MinecraftServer.LOGGER.info("Enabling Mojang Auth") }
         }
 
