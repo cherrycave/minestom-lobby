@@ -8,6 +8,8 @@ import net.minestom.server.entity.PlayerSkin
 import net.minestom.server.entity.fakeplayer.FakePlayer
 import net.minestom.server.timer.TaskSchedule
 import java.util.*
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
 
 object NpcHandler {
     val npcs = mutableListOf<FakePlayer>()
