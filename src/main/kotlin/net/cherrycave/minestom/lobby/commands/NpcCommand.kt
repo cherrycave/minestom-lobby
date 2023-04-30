@@ -2,7 +2,6 @@ package net.cherrycave.minestom.lobby.commands
 
 import net.cherrycave.minestom.lobby.NpcHandler
 import net.cherrycave.minestom.lobby.data.NpcConfigFile
-import net.cherrycave.minestom.lobby.data.toSerialPos
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.NamedTextColor
@@ -48,7 +47,7 @@ class NpcCommand : Command("npc") {
                         skin?.textures().orEmpty(),
                         skin?.signature().orEmpty(),
                         emptyList(),
-                        context.get(position).fromSender(sender).asPosition().toSerialPos()
+                        context.get(position).fromSender(sender).asPosition()
                     )
                 )
             }, position, name)
@@ -106,7 +105,7 @@ class NpcCommand : Command("npc") {
                 if (NpcHandler.npcs.any { it.key.uuid == context.get(id) }) {
                     val position = context.get(location).fromSender(sender).asPosition()
                     sender.sendMessage(Component.text("Moved NPC!").color(NamedTextColor.GREEN))
-                    NpcHandler.moveNpc(context.get(id).toString(), position.toSerialPos())
+                    NpcHandler.moveNpc(context.get(id).toString(), position)
                 } else sender.sendMessage(Component.text("Unknown NPC!").color(NamedTextColor.RED))
             }, id, location)
         }

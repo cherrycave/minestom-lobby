@@ -2,10 +2,10 @@ package net.cherrycave.minestom.lobby
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import net.cherrycave.minestom.lobby.data.ConfigFile
 import net.cherrycave.minestom.lobby.data.NpcConfigFile
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.minestom.server.MinecraftServer
+import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityType
 import net.minestom.server.entity.PlayerSkin
@@ -55,7 +55,7 @@ object NpcHandler {
                     it.setNotifyAboutChanges(true)
                 }
                 MinecraftServer.getSchedulerManager().buildTask {
-                    player.teleport(npc.position.toPos())
+                    player.teleport(npc.position)
                     // Armor Stand
                     val armorStand = Entity(EntityType.ARMOR_STAND)
                     armorStand.customName = MiniMessage.miniMessage().deserialize(npc.name)
@@ -94,7 +94,7 @@ object NpcHandler {
         reloadNpcs()
     }
 
-    fun moveNpc(id: String, newLocation: ConfigFile.SerialPos) {
+    fun moveNpc(id: String, newLocation: Pos) {
         Main.npcConfigFile.writeText(
             Main.json.encodeToString(
                 NpcConfigFile(Main.json.decodeFromString<NpcConfigFile>(Main.npcConfigFile.readText()).npcs.toMutableList().let { npcConfigEntries ->
