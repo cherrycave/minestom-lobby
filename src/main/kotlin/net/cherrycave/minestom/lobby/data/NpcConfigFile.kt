@@ -1,6 +1,7 @@
 package net.cherrycave.minestom.lobby.data
 
 import kotlinx.serialization.Serializable
+import net.cherrycave.minestom.lobby.utils.SerializablePos
 
 @Serializable
 data class NpcConfigFile(val npcs: List<NpcConfigEntry>) {
@@ -12,7 +13,7 @@ data class NpcConfigFile(val npcs: List<NpcConfigEntry>) {
         val texture: String,
         val signature: String,
         val metadata: List<NpcMetadata>,
-        val position: ConfigFile.SerialPos
+        val position: SerializablePos
     )
 
     @Serializable

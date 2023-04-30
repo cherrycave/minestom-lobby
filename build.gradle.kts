@@ -14,6 +14,15 @@ version = "1.0.0"
 repositories {
     mavenCentral()
     maven("https://jitpack.io")
+
+    maven {
+        url = uri("https://maven.stckoverflw.net/private")
+
+        credentials {
+            username = "blake"
+            password = "GqVyx+lg/NNNIpwUKCwqzgECwzLRttCT3DUgkWUv3CxnBF9DNDDpHVDMjT5dR3lG"
+        }
+    }
 }
 
 dependencies {
@@ -22,6 +31,8 @@ dependencies {
     implementation("com.akuleshov7:ktoml-core:0.4.1")
     implementation("com.akuleshov7:ktoml-file:0.4.1")
     implementation("net.kyori:adventure-text-minimessage:4.13.1")
+
+    implementation("net.cherrycave:birgid:0.3.3")
 }
 
 kotlin {
