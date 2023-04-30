@@ -12,7 +12,7 @@ import net.minestom.server.item.ItemStack
 import net.minestom.server.item.Material
 
 fun Player.openNavigator() {
-    playSound(Sound.sound(Key.key("minecraft", "block.amethyst_block.fall"), Sound.Source.AMBIENT, 0.8F, 2F))
+    playSound(Sound.sound(Key.key("minecraft", "block.amethyst_block.fall"), Sound.Source.AMBIENT, 5F, 2F))
     openInventory(navigatorInventory)
 }
 
@@ -35,7 +35,7 @@ private val navigatorInventory: Inventory by lazy {
         when (slot) {
             22 -> {
                 inventoryConditionResult.isCancel = false
-                player.playSound(Sound.sound(Key.key("minecraft", "entity.enderman.teleport"), Sound.Source.AMBIENT, 0.5F, 1F))
+                player.playSound(Sound.sound(Key.key("minecraft", "entity.enderman.teleport"), Sound.Source.AMBIENT, 1F, 1F))
                 player.teleport(Main.config.spawnLocation)
                 player.closeInventory()
             }
