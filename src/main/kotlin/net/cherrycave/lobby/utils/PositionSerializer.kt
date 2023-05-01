@@ -1,4 +1,4 @@
-package net.cherrycave.minestom.lobby.utils
+package net.cherrycave.lobby.utils
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
