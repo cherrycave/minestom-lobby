@@ -28,11 +28,11 @@ repositories {
 dependencies {
     implementation("com.github.Minestom.Minestom:Minestom:-SNAPSHOT")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
-    implementation("com.akuleshov7:ktoml-core:0.4.1")
-    implementation("com.akuleshov7:ktoml-file:0.4.1")
     implementation("net.kyori:adventure-text-minimessage:4.13.1")
 
-    implementation("net.cherrycave:birgid:0.3.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0-RC")
+
+    implementation("net.cherrycave:birgid:0.3.5")
 }
 
 kotlin {
@@ -40,7 +40,7 @@ kotlin {
 }
 
 application {
-    mainClass.set("net.cherrycave.minestom.lobby.Main")
+    mainClass.set("net.cherrycave.lobby.LauncherKt")
     ext.set("Multi-Release", true)
 }
 

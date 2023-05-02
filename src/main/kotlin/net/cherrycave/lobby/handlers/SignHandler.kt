@@ -1,4 +1,4 @@
-package net.cherrycave.minestom.lobby.handlers
+package net.cherrycave.lobby.handlers
 
 import net.kyori.adventure.key.Key
 import net.minestom.server.instance.block.BlockHandler

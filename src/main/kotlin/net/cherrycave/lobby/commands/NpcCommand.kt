@@ -1,7 +1,9 @@
-package net.cherrycave.minestom.lobby.commands
+package net.cherrycave.lobby.commands
 
-import net.cherrycave.minestom.lobby.NpcHandler
-import net.cherrycave.minestom.lobby.data.NpcConfigFile
+import kotlinx.coroutines.launch
+import net.cherrycave.lobby.NpcManager
+import net.cherrycave.lobby.coroutineScope
+import net.cherrycave.lobby.data.NpcConfigEntry
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.NamedTextColor
@@ -13,18 +15,18 @@ import net.minestom.server.entity.Player
 import net.minestom.server.entity.PlayerSkin
 import java.util.*
 
-class NpcCommand : Command("npc") {
+class NpcCommand(npcManager: NpcManager) : Command("npc") {
 
     init {
         setCondition { sender, _ -> sender.hasPermission("lobby.npc") || true && sender is Player }
-        addSubcommand(NpcAddCommand())
-        addSubcommand(NpcListCommand())
-        addSubcommand(NpcRemoveCommand())
-        addSubcommand(NpcReloadCommand())
-        addSubcommand(NpcMoveCommand())
+        addSubcommand(NpcAddCommand(npcManager))
+        addSubcommand(NpcListCommand(npcManager))
+        addSubcommand(NpcRemoveCommand(npcManager))
+        addSubcommand(NpcReloadCommand(npcManager))
+        addSubcommand(NpcMoveCommand(npcManager))
     }
 
-    class NpcAddCommand : Command("add") {
+    class NpcAddCommand(private val npcManager: NpcManager) : Command("add") {
         init {
             val position = ArgumentType.RelativeBlockPosition("position")
             position.setCallback { sender, _ ->
@@ -40,37 +42,41 @@ class NpcCommand : Command("npc") {
             }
             addSyntax({ sender, context ->
                 val skin = PlayerSkin.fromUsername(PlainTextComponentSerializer.plainText().serialize(MiniMessage.miniMessage().deserialize(context.get(name))))
-                NpcHandler.addNpc(
-                    NpcConfigFile.NpcConfigEntry(
-                        UUID.randomUUID().toString(),
-                        context.get(name),
-                        skin?.textures().orEmpty(),
-                        skin?.signature().orEmpty(),
-                        emptyList(),
-                        context.get(position).fromSender(sender).asPosition()
+                coroutineScope.launch {
+                    npcManager.addNpc(
+                        NpcConfigEntry(
+                            UUID.randomUUID().toString(),
+                            context.get(name),
+                            skin?.textures().orEmpty(),
+                            skin?.signature().orEmpty(),
+                            emptyList(),
+                            context.get(position).fromSender(sender).asPosition()
+                        )
                     )
-                )
+                }
             }, position, name)
         }
     }
 
-    class NpcRemoveCommand : Command("remove") {
+    class NpcRemoveCommand(private val npcManager: NpcManager) : Command("remove") {
         init {
             val id = ArgumentType.UUID("uuid")
             addSyntax({ sender, context ->
-                if (NpcHandler.npcs.any { it.key.uuid == context.get(id) }) {
+                if (npcManager.npcs.any { it.key.uuid == context.get(id) }) {
                     sender.sendMessage(Component.text("Removed NPC!").color(NamedTextColor.GREEN))
-                    NpcHandler.removeNpc(context.get(id).toString())
+                    coroutineScope.launch {
+                        npcManager.removeNpc(context.get(id).toString())
+                    }
                 } else sender.sendMessage(Component.text("Unknown NPC!").color(NamedTextColor.RED))
             }, id)
         }
     }
 
-    class NpcListCommand : Command("list") {
+    class NpcListCommand(private val npcManager: NpcManager) : Command("list") {
         init {
             setDefaultExecutor { sender, _ ->
                 var component = Component.text("NPC list:").color(NamedTextColor.GREEN)
-                NpcHandler.npcs.forEach { npc ->
+                npcManager.npcs.forEach { npc ->
                     component = component.append {
                         Component.text("\n ").append {
                             npc.value.customName!!.append(Component.text(" (")).append {
@@ -88,24 +94,29 @@ class NpcCommand : Command("npc") {
         }
     }
 
-    class NpcReloadCommand : Command("reload") {
+    class NpcReloadCommand(private val npcManager: NpcManager) : Command("reload") {
         init {
             setDefaultExecutor { sender, _ ->
                 sender.sendMessage(Component.text("Reloading NPCs!"))
-                NpcHandler.reloadNpcs()
+                coroutineScope.launch {
+                    npcManager.reloadNpcs()
+                }
             }
         }
     }
 
-    class NpcMoveCommand : Command("move") {
+    class NpcMoveCommand(private val npcManager: NpcManager) : Command("move") {
         init {
             val id = ArgumentType.UUID("uuid")
             val location = ArgumentType.RelativeBlockPosition("location")
             addSyntax({ sender, context ->
-                if (NpcHandler.npcs.any { it.key.uuid == context.get(id) }) {
+
+                if (npcManager.npcs.any { it.key.uuid == context.get(id) }) {
                     val position = context.get(location).fromSender(sender).asPosition()
                     sender.sendMessage(Component.text("Moved NPC!").color(NamedTextColor.GREEN))
-                    NpcHandler.moveNpc(context.get(id).toString(), position)
+                    coroutineScope.launch {
+                        npcManager.moveNpc(context.get(id).toString(), position)
+                    }
                 } else sender.sendMessage(Component.text("Unknown NPC!").color(NamedTextColor.RED))
             }, id, location)
         }

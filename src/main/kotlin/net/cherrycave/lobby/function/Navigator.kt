@@ -1,6 +1,6 @@
-package net.cherrycave.minestom.lobby.function
+package net.cherrycave.lobby.function
 
-import net.cherrycave.minestom.lobby.Main
+import net.cherrycave.lobby.data.ConfigData
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
@@ -11,15 +11,16 @@ import net.minestom.server.inventory.InventoryType
 import net.minestom.server.item.ItemStack
 import net.minestom.server.item.Material
 
-fun Player.openNavigator() {
+
+fun Player.openNavigator(configData: ConfigData) {
     playSound(Sound.sound(Key.key("minecraft", "block.amethyst_block.fall"), Sound.Source.AMBIENT, 5F, 2F))
-    openInventory(navigatorInventory)
+    openInventory(navigatorInventory(configData))
 }
 
 private val placeHolderItem = ItemStack.builder(Material.BLACK_STAINED_GLASS_PANE)
     .displayName(Component.text("")).build()
 
-private val navigatorInventory: Inventory by lazy {
+private fun navigatorInventory(configData: ConfigData): Inventory {
     val inv = Inventory(InventoryType.CHEST_5_ROW, Component.text("Navigator").color(TextColor.color(0x8937db)))
     for (i in 0 until inv.size) {
         inv.setItemStack(i, placeHolderItem)
@@ -36,13 +37,13 @@ private val navigatorInventory: Inventory by lazy {
             22 -> {
                 inventoryConditionResult.isCancel = false
                 player.playSound(Sound.sound(Key.key("minecraft", "entity.enderman.teleport"), Sound.Source.AMBIENT, 1F, 1F))
-                player.teleport(Main.config.spawnLocation)
+                player.teleport(configData.spawnLocation)
                 player.closeInventory()
             }
         }
     }
 
-    inv
+    return inv
 }
 
 val navigatorItem = ItemStack.builder(Material.COMPASS)

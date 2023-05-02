@@ -1,4 +1,4 @@
-package net.cherrycave.minestom.lobby.data
+package net.cherrycave.lobby.data
 
 import kotlinx.serialization.Serializable
 
