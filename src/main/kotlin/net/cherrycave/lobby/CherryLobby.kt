@@ -79,7 +79,7 @@ class CherryLobby(host: String, port: Int, production: Boolean) {
             config = json.decodeFromString(dataDirectory.resolve("config.json").readText())
             FileNpcManager(dataDirectory)
         }
-        MinecraftServer.getCommandManager().register(NpcCommand(npcManager))
+        MinecraftServer.getCommandManager().register(NpcCommand(npcManager, production))
 
         coroutineScope.launch {
             npcManager.reloadNpcs()

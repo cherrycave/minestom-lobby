@@ -15,10 +15,10 @@ import net.minestom.server.entity.Player
 import net.minestom.server.entity.PlayerSkin
 import java.util.*
 
-class NpcCommand(npcManager: NpcManager) : Command("npc") {
+class NpcCommand(npcManager: NpcManager, production: Boolean) : Command("npc") {
 
     init {
-        setCondition { sender, _ -> sender.hasPermission("lobby.npc") || true && sender is Player }
+        setCondition { sender, _ -> sender.hasPermission("lobby.npc") || !production && sender is Player }
         addSubcommand(NpcAddCommand(npcManager))
         addSubcommand(NpcListCommand(npcManager))
         addSubcommand(NpcRemoveCommand(npcManager))
