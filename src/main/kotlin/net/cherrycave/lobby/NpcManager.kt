@@ -45,9 +45,9 @@ class GertrudClientNpcManager(val gertrudClient: GertrudClient) : NpcManager() {
     private lateinit var configData: ConfigData
 
     override suspend fun reloadNpcs() {
-        val settings = gertrudClient.getSettings("lobby-1")
+        val settings = gertrudClient.getSettings<ConfigData>("lobby-1")
 
-        this.configData = settings.getOrNull() as ConfigData? ?: error("Failed to get settings")
+        this.configData = settings.getOrNull() ?: error("Failed to get settings")
 
         reloadPlayers(configData, npcs)
     }

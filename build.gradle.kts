@@ -32,7 +32,7 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0-RC")
 
-    implementation("net.cherrycave:birgid:0.3.5")
+    implementation("net.cherrycave:birgid:0.4.0")
 }
 
 kotlin {

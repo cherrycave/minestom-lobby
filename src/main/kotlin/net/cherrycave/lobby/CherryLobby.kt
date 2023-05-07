@@ -4,18 +4,20 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import net.cherrycave.birgid.request.getSettings
+import net.cherrycave.lobby.commands.NavigatorCommand
 import net.cherrycave.lobby.commands.NpcCommand
 import net.cherrycave.lobby.data.ConfigData
 import net.cherrycave.lobby.data.Constants
-import net.cherrycave.lobby.function.navigatorItem
-import net.cherrycave.lobby.function.openNavigator
+import net.cherrycave.lobby.function.*
 import net.cherrycave.lobby.handlers.BannerHandler
 import net.cherrycave.lobby.handlers.SignHandler
 import net.cherrycave.lobby.handlers.SkullHandler
 import net.kyori.adventure.key.Key
+import net.kyori.adventure.text.minimessage.MiniMessage
 import net.minestom.server.MinecraftServer
 import net.minestom.server.entity.GameMode
 import net.minestom.server.event.GlobalEventHandler
+import net.minestom.server.event.item.ItemDropEvent
 import net.minestom.server.event.player.PlayerBlockInteractEvent
 import net.minestom.server.event.player.PlayerLoginEvent
 import net.minestom.server.event.player.PlayerUseItemEvent
@@ -29,6 +31,10 @@ import java.io.InputStreamReader
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
+
+val miniMessage by lazy {
+    MiniMessage.miniMessage()
+}
 
 class CherryLobby(host: String, port: Int, production: Boolean) {
 
@@ -53,7 +59,10 @@ class CherryLobby(host: String, port: Int, production: Boolean) {
         val instanceContainer = instanceManager.createInstanceContainer(dimension)
         instanceContainer.setGenerator(null)
 
-        MinecraftServer.getGlobalEventHandler().registerListeners(instanceContainer)
+        val navigatorManager =
+            if (production) GertrudClientNavigator(gertrudClient) else FileConfigNavigator(Path("data/config.json"))
+
+        MinecraftServer.getGlobalEventHandler().registerListeners(instanceContainer, navigatorManager)
 
         enableAuthentication()
 
@@ -71,7 +80,7 @@ class CherryLobby(host: String, port: Int, production: Boolean) {
 
         val npcManager = if (production) {
             coroutineScope.launch {
-                config = gertrudClient.getSettings("lobby-1").getOrNull() as ConfigData? ?: error("Config not found")
+                config = gertrudClient.getSettings<ConfigData>("lobby-1").getOrNull() ?: error("Config not found")
             }
             GertrudClientNpcManager(gertrudClient)
         } else {
@@ -80,6 +89,7 @@ class CherryLobby(host: String, port: Int, production: Boolean) {
             FileNpcManager(dataDirectory)
         }
         MinecraftServer.getCommandManager().register(NpcCommand(npcManager, production))
+        MinecraftServer.getCommandManager().register(NavigatorCommand(navigatorManager, production))
 
         coroutineScope.launch {
             npcManager.reloadNpcs()
@@ -88,7 +98,10 @@ class CherryLobby(host: String, port: Int, production: Boolean) {
         minecraftServer.start(host, port)
     }
 
-    private fun GlobalEventHandler.registerListeners(instanceContainer: InstanceContainer) {
+    private fun GlobalEventHandler.registerListeners(
+        instanceContainer: InstanceContainer,
+        navigatorManager: NavigatorManager
+    ) {
         addListener(PlayerLoginEvent::class.java) { event ->
             event.setSpawningInstance(instanceContainer)
             event.player.respawnPoint = config.spawnLocation
@@ -99,8 +112,10 @@ class CherryLobby(host: String, port: Int, production: Boolean) {
             event.isBlockingItemUse = true
         }.addListener(PlayerUseItemEvent::class.java) { event ->
             if (event.player.inventory.itemInMainHand.isSimilar(navigatorItem)) {
-                event.player.openNavigator(config)
+                event.player.openNavigator(config, navigatorManager)
             }
+        }.addListener(ItemDropEvent::class.java) { event ->
+            event.isCancelled = true
         }
     }
 
