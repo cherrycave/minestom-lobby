@@ -1,17 +1,16 @@
 package net.cherrycave.lobby
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import net.cherrycave.birgid.GertrudClient
-import net.cherrycave.birgid.command.ServerType
 import net.cherrycave.birgid.command.registerServer
 import net.cherrycave.lobby.data.ConfigData
 import net.minestom.server.coordinate.Pos
-import kotlin.io.path.*
+import kotlin.io.path.Path
+import kotlin.io.path.createDirectories
+import kotlin.io.path.exists
+import kotlin.io.path.writeText
 import kotlin.system.exitProcess
 
 val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -36,13 +35,13 @@ val gertrudClient by lazy {
     }
 }
 
-suspend fun main(args: Array<String>) {
+fun main(args: Array<String>) {
     val production = System.getenv("P_SERVER_UUID") != null
 
     val (host, port) = if (production) {
-
-
-        val registration = gertrudClient.registerServer(true, ServerType.LOBBY)
+        val registration = runBlocking {
+            gertrudClient.registerServer(true, "lobby")
+        }
 
         registration.onFailure {
             println("Failed to register server: ${it.message}")
@@ -53,11 +52,11 @@ suspend fun main(args: Array<String>) {
 
         Runtime.getRuntime().addShutdownHook(Thread {
             coroutineScope.launch {
-                gertrudClient.registerServer(false, ServerType.LOBBY)
+                gertrudClient.registerServer(false, "lobby")
             }
         })
 
-        registrationData.host to registrationData.port
+        "0.0.0.0" to registrationData.port
     } else {
         dataPath.createDirectories()
         if (!configFile.exists() || args.firstOrNull() == "--generateConfig") {
