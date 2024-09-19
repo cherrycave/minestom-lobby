@@ -27,7 +27,7 @@ repositories {
 
 dependencies {
     implementation("com.github.Minestom.Minestom:Minestom:-SNAPSHOT")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("net.kyori:adventure-text-minimessage:4.13.1")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
